@@ -1,0 +1,5 @@
+* Initial release: fullscreen kiosk display for Android TV
+* Auto recovery on network failure (exponential backoff retry)
+* Restore last visited page on startup
+* DPI fix for 4K displays
+* Built-in auto-update support

@@ -1,0 +1,11 @@
+DataVision turns an Android TV into a dedicated data dashboard display.
+Based on the open-source TV Bro browser, rebuilt as a fullscreen kiosk application.
+
+Features:
+- Fullscreen kiosk mode: displays a configured web page, all browser UI hidden
+- Auto recovery on network failure: exponential backoff retries, instant reload when network returns
+- Restores the last visited page on startup
+- Optional periodic auto reload
+- DPI fix for 4K displays (1:1 physical pixel viewport)
+- Long press BACK/MENU to exit kiosk and change the dashboard URL in settings
+- Built-in auto-update via GitHub releases

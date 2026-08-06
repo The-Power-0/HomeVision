@@ -1,0 +1,23 @@
+{
+  "channels": [
+    {
+      "name": "release",
+      "latestVersionName": "v1.0.0",
+      "latestVersionCode": 1,
+      "minAPI": 26,
+      "url": "https://github.com/ayumilove/DataVision/releases/download/v1.0.0/datavision-1.0.0-generic-geckoIncluded-arm64-v8a.apk",
+      "urls": [
+        "https://github.com/ayumilove/DataVision/releases/download/v1.0.0/datavision-1.0.0-generic-geckoIncluded-armeabi-v7a.apk",
+        "https://github.com/ayumilove/DataVision/releases/download/v1.0.0/datavision-1.0.0-generic-geckoIncluded-x86_64.apk"
+      ]
+    }
+  ],
+
+  "changelog": [
+    {
+      "versionCode": 1,
+      "versionName": "v1.0.0",
+      "changes": "* Initial release: fullscreen kiosk display for Android TV\n* Auto recovery on network failure (exponential backoff retry)\n* Restore last visited page on startup\n* DPI fix for 4K displays\n* Built-in auto-update support"
+    }
+  ]
+}

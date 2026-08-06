@@ -1,0 +1,1 @@
+Fullscreen kiosk app that displays any web page (data dashboards) on Android TV with auto recovery
