@@ -1,0 +1,55 @@
+name: HomeVision CI
+on:
+  push:
+    branches: [main, homevision-dev]
+    paths-ignore: ['**/*.md']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  webview-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            21
+      - uses: android-actions/setup-android@v3
+      - name: SDK dependencies
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Grant Gradle permission
+        run: chmod +x ./gradlew
+      - name: Confirm inherited and bundled licensing
+        run: |
+          test -s LICENSE.md
+          test -s docs/HOMEVISION_ATTRIBUTION.md
+          test -s app/src/main/assets/homevision/TV_BRO_LICENSE.md
+          grep -q 'truefedex/tv-bro' LICENSE.md
+          test -s app/src/main/res/drawable/homevision_launcher.xml
+          test -s app/src/main/res/drawable/homevision_banner.xml
+      - name: Unit tests (WebView flavor)
+        run: ./gradlew :app:testGenericGeckoExcludedDebugUnitTest --stacktrace
+      - name: Build WebView debug APK
+        run: ./gradlew :app:assembleGenericGeckoExcludedDebug --stacktrace
+      - name: Confirm APK and small size
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          matches=list(Path('app/build/outputs/apk/genericGeckoExcluded/debug').glob('*.apk'))
+          assert len(matches)==1, f'Expected one debug APK, got {matches}'
+          apk=matches[0]
+          assert apk.stat().st_size < 25_000_000, f'Unexpectedly large APK: {apk.stat().st_size}'
+          print('Validated', apk, apk.stat().st_size)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HomeVision-debug
+          path: app/build/outputs/apk/genericGeckoExcluded/debug/*.apk
+          retention-days: 7

@@ -1,0 +1,104 @@
+name: HomeVision Signed Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version exactly matching app/build.gradle.kts (example 1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as prerelease'
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: homevision-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    environment: homevision-release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Validate chosen version and app identity
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os,re
+          from pathlib import Path
+          version=os.environ['VERSION']
+          assert re.fullmatch(r'\d+\.\d+\.\d+', version), 'Use X.Y.Z only'
+          content=Path('app/build.gradle.kts').read_text()
+          assert f'versionName = "{version}"' in content, 'Version not updated in Gradle!'
+          assert 'applicationId = "com.homevision.tv"' in content
+          assert 'buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")' in content
+          PY
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            21
+      - uses: android-actions/setup-android@v3
+      - name: Android SDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Decode signing keystore
+        env:
+          SIGNING_B64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          python3 - <<'PY'
+          import base64,os
+          from pathlib import Path
+          data=base64.b64decode(os.environ['SIGNING_B64'],validate=True)
+          assert 1000 < len(data) < 100_000, 'Invalid signing keystore size'
+          Path('homevision-release.jks').write_bytes(data)
+          PY
+      - name: Gradle unit tests + signed WebView release
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/homevision-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:testGenericGeckoExcludedDebugUnitTest :app:assembleGenericGeckoExcludedRelease --stacktrace
+      - name: Verify release signature and package metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          matches=list(Path('app/build/outputs/apk/genericGeckoExcluded/release').glob('*.apk'))
+          assert len(matches)==1, f'Expected one APK, got {matches}'
+          apk=matches[0]
+          assert 100_000<apk.stat().st_size<25_000_000, f'Unexpected APK size: {apk.stat().st_size}'
+          Path('HomeVision.apk').write_bytes(apk.read_bytes())
+          PY
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs HomeVision.apk | tee homevision-signature.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging HomeVision.apk | grep -E '^package:|^application-label:' | tee homevision-package.txt
+          grep -q "name='com.homevision.tv'" homevision-package.txt
+      - name: Create integrity file
+        run: sha256sum HomeVision.apk > HomeVision.apk.sha256
+      - name: Publish signed release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: HomeVision v${{ inputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ inputs.prerelease }}
+          files: |
+            HomeVision.apk
+            HomeVision.apk.sha256
+            homevision-signature.txt
+            homevision-package.txt
+            LICENSE.md
+            docs/HOMEVISION_ATTRIBUTION.md
+      - name: Remove signing keystore
+        if: always()
+        run: rm -f homevision-release.jks

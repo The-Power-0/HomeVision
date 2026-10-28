@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DataVision：電視數據大屏</string>
+    <string name="app_name">HomeVision</string>
     <string name="error">錯誤</string>
     <string name="ok">OK</string>
     <string name="loading">載入中...</string>

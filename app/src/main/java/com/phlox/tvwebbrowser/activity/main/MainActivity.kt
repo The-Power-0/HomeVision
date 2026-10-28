@@ -25,12 +25,14 @@ import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
 import android.os.Process
+import android.os.SystemClock
 import android.util.Log
 import android.util.Patterns
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -38,6 +40,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
+import android.webkit.WebView
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
 import android.webkit.URLUtil
@@ -140,6 +143,24 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     //DataVision Kiosk mode state
     private var kioskModeExited = false
     private var kioskNetworkLost = false
+    private var homeVisionLongBackPressed = false
+    private var homeVisionLastBackMs = 0L
+
+    // HomeVision: the Fast Forward hold is scoped to kiosk mode and WebView.
+    private var homeVisionFastForwardDown = false
+    private var homeVisionFastForwardSwitched = false
+    private var homeVisionFastForwardDownTime = 0L
+    private val homeVisionFastForwardHoldRunnable = Runnable {
+        if (!homeVisionFastForwardDown || !isKioskActive || config.isWebEngineGecko()) return@Runnable
+        val engine = tabsModel.currentTab.value?.webEngine ?: return@Runnable
+        val cursorEnabled = !engine.isVirtualCursorMode()
+        engine.setVirtualCursorMode(cursorEnabled)
+        engine.getView()?.requestFocus()
+        homeVisionFastForwardSwitched = true
+        val message = if (cursorEnabled) "HomeVision: Cursor mode" else "HomeVision: Spatial mode"
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Log.i(TAG, "HomeVision navigation gesture -> $message")
+    }
     private val isKioskActive: Boolean
         get() = config.kioskMode && !kioskModeExited
 
@@ -425,6 +446,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onDestroy() {
+        cancelHomeVisionFastForwardHold()
         Log.d(TAG, "onDestroy")
         //here properties can be uninitialized in case of wrong activity for incognito mode
         //detection and force activity restart in onCreate()
@@ -745,6 +767,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onPause() {
+        cancelHomeVisionFastForwardHold()
         unregisterReceiver(mConnectivityChangeReceiver)
         tabsModel.currentTab.value?.apply {
             webEngine.onPause()
@@ -886,28 +909,115 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     )
 
+    // HomeVision: browser-native spatial DPAD navigation is cursor mode OFF.
+    // Apply only after the active WebView page completes loading.
+    private fun applyHomeVisionSpatialDefault(tab: WebTabState) {
+        if (!isKioskActive || config.isWebEngineGecko() || tabsModel.currentTab.value !== tab) return
+        val view = tab.webEngine.getView() ?: return
+        view.post {
+            if (isKioskActive && tabsModel.currentTab.value === tab && !config.isWebEngineGecko()) {
+                tab.webEngine.setVirtualCursorMode(false)
+                view.requestFocus()
+                Log.i(TAG, "HomeVision navigation -> spatial on page load")
+            }
+        }
+    }
+
+    private fun cancelHomeVisionFastForwardHold() {
+        if (::uiHandler.isInitialized) {
+            uiHandler.removeCallbacks(homeVisionFastForwardHoldRunnable)
+        }
+        homeVisionFastForwardDown = false
+        homeVisionFastForwardSwitched = false
+    }
+
+    // Wait for three seconds of *continuous* KEYCODE_MEDIA_FAST_FORWARD hold.
+    // Ordinary short taps are passed to the original Window.Callback on release.
+    // Do not run this gesture outside kiosk mode or while Gecko is active.
+    private fun handleHomeVisionFastForward(event: KeyEvent, originalCallback: Window.Callback): Boolean {
+        if (!isKioskActive || config.isWebEngineGecko() ||
+            event.keyCode != KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) return false
+
+        when (event.action) {
+            KeyEvent.ACTION_DOWN -> {
+                if (!homeVisionFastForwardDown) {
+                    homeVisionFastForwardDown = true
+                    homeVisionFastForwardSwitched = false
+                    homeVisionFastForwardDownTime = SystemClock.uptimeMillis()
+                    uiHandler.postDelayed(homeVisionFastForwardHoldRunnable, 3000L)
+                }
+                return true // Consume initial and repeat events during gesture recognition.
+            }
+            KeyEvent.ACTION_UP -> {
+                if (!homeVisionFastForwardDown) return false
+                val switched = homeVisionFastForwardSwitched
+                val downTime = homeVisionFastForwardDownTime
+                cancelHomeVisionFastForwardHold()
+                if (!switched && !event.isCanceled) {
+                    // Replay only one tap, with no repeats, to preserve short FF behavior.
+                    val upTime = SystemClock.uptimeMillis()
+                    originalCallback.dispatchKeyEvent(KeyEvent(
+                        downTime, upTime, KeyEvent.ACTION_DOWN,
+                        KeyEvent.KEYCODE_MEDIA_FAST_FORWARD, 0
+                    ))
+                    originalCallback.dispatchKeyEvent(KeyEvent(
+                        downTime, upTime, KeyEvent.ACTION_UP,
+                        KeyEvent.KEYCODE_MEDIA_FAST_FORWARD, 0
+                    ))
+                }
+                return true
+            }
+            else -> return true
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus) cancelHomeVisionFastForwardHold()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         val localCallback = window.callback
         window.callback = object : Window.Callback by localCallback {
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 //Log.d(TAG, "dispatchKeyEvent event: $event")
-                backNavigationEventsAdapter.dispatchKeyEvent(event)
-
                 val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
-                if (isKioskActive && (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK)) {
-                    //Kiosk mode exit: long press the MENU or BACK key
-                    if (event.action == KeyEvent.ACTION_DOWN) {
-                        if (event.repeatCount == 1) {
-                            exitKioskMode()
-                            return true
-                        }
-                        //consume MENU completely, let short BACK presses fall through
-                        return keyCode == KeyEvent.KEYCODE_MENU
-                    } else if (event.action == KeyEvent.ACTION_UP) {
-                        return event.isLongPress || keyCode == KeyEvent.KEYCODE_MENU
-                    }
+                if (handleHomeVisionFastForward(event, localCallback)) return true
+                // Cancel the gesture if a different physical button is pressed.
+                if (homeVisionFastForwardDown && event.action == KeyEvent.ACTION_DOWN &&
+                    keyCode != KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
+                    cancelHomeVisionFastForwardHold()
                 }
+                // Kiosk may already have exited on key repeat; consume its matching UP.
+                if (!isKioskActive && homeVisionLongBackPressed &&
+                    (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) &&
+                    event.action == KeyEvent.ACTION_UP) {
+                    homeVisionLongBackPressed = false
+                    return true
+                }
+                if (isKioskActive && (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK)) {
+                    // HomeVision: consume the native event, forward ONLY short BACK on release.
+                    // Preserve the upstream MENU/BACK long-press kiosk exit shortcut.
+                    if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                        homeVisionLongBackPressed = false
+                    }
+                    if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount >= 1) {
+                        if (!homeVisionLongBackPressed) {
+                            homeVisionLongBackPressed = true
+                            exitKioskMode()
+                        }
+                        return true
+                    }
+                    if (event.action == KeyEvent.ACTION_UP &&
+                        keyCode == KeyEvent.KEYCODE_BACK &&
+                        !homeVisionLongBackPressed && !event.isCanceled) {
+                        forwardHomeVisionBack()
+                    }
+                    return true
+                }
+                // Non-kiosk input preserves the original DataVision behavior.
+                backNavigationEventsAdapter.dispatchKeyEvent(event)
                 val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
                         keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
                 val shortcutMgr = ShortcutMgr.getInstance()
@@ -948,7 +1058,40 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         return true
     }
 
+    // HomeVision: WebView-only kiosk bridge. The Homebase page listens for Escape.
+    // Dispatch to document.body so the event bubbles to its capture-phase window listener.
+    private fun findHomeVisionWebView(root: View?): WebView? {
+        if (root is WebView) return root
+        if (root is ViewGroup) {
+            for (index in 0 until root.childCount) {
+                findHomeVisionWebView(root.getChildAt(index))?.let { return it }
+            }
+        }
+        return null
+    }
+
+    private fun forwardHomeVisionBack() {
+        if (!isKioskActive || config.isWebEngineGecko()) return
+        val now = SystemClock.elapsedRealtime()
+        if (now - homeVisionLastBackMs < 250) return  // Suppress duplicate Android dispatch.
+        homeVisionLastBackMs = now
+        val root = tabsModel.currentTab.value?.webEngine?.getView() ?: return
+        val webView = findHomeVisionWebView(root) ?: return
+        webView.post {
+            webView.evaluateJavascript(
+                "(function(){if(!document.body)return;var e=new KeyboardEvent('keydown'," +
+                "{key:'Escape',code:'Escape',bubbles:true,cancelable:true});" +
+                "document.body.dispatchEvent(e);})();",
+                null
+            )
+        }
+    }
+
     private fun handleBackNavigation() {
+        if (isKioskActive) {
+            forwardHomeVisionBack()
+            return
+        }
         Log.d(TAG, "handleBackNavigation")
         if (tabsModel.currentTab.value?.webEngine?.isVirtualCursorMode() == false) {
             tabsModel.currentTab.value?.webEngine?.setVirtualCursorMode(true)
@@ -1007,6 +1150,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun exitKioskMode() {
         if (!isKioskActive) return
+        cancelHomeVisionFastForwardHold()
         Log.i(TAG, "exitKioskMode")
         kioskModeExited = true
         uiHandler.removeCallbacks(kioskAutoReloadRunnable)
@@ -1343,6 +1487,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 return
             }
             onWebViewUpdated(tab)
+            applyHomeVisionSpatialDefault(tab)
 
             val webViewUrl = tab.webEngine.url
             if (webViewUrl != null) {

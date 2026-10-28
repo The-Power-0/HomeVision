@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "tv-bro"
+rootProject.name = "HomeVision"
 include(":app")
 include(":app:common")
 include(":app:gecko")

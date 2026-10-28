@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-  <string name="app_name">DataVision: 电视数据大屏</string>
+  <string name="app_name">HomeVision</string>
     <string name="kiosk_mode">Kiosk 模式（全屏数据大屏展示）</string>
     <string name="kiosk_mode_url">大屏页面地址（URL）</string>
     <string name="kiosk_auto_reload_minutes">自动刷新间隔（分钟，0 为关闭）</string>

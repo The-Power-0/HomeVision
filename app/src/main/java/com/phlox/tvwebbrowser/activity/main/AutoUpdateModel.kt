@@ -33,6 +33,10 @@ class AutoUpdateModel: ActiveModel() {
     }
 
     fun checkUpdate(force: Boolean, onDoneCallback: () -> Unit) = modelScope.launch(Dispatchers.Main) {
+        if (!BuildConfig.BUILT_IN_AUTO_UPDATE) {
+            onDoneCallback()
+            return@launch
+        }
         if (updateChecker.versionCheckResult == null || force) {
             launch(Dispatchers.IO) {
                 try {

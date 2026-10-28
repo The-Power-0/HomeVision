@@ -7,9 +7,9 @@ android {
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
-        applicationId = "im.xcode.datavision"
-        versionCode = 1
-        versionName = "1.0.0"
+        applicationId = "com.homevision.tv"
+        versionCode = 10001
+        versionName = "1.0.1"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -62,7 +62,7 @@ android {
             dimension = "appstore"
             //DataVision: built-in auto-update is enabled against our own
             //GitHub release channel (see AutoUpdateModel / latest_version.json)
-            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
         }
         create("google") {
             dimension = "appstore"
