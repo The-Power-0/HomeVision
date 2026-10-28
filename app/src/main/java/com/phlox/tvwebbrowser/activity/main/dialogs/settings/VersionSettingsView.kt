@@ -3,7 +3,6 @@ package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.text.Html
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -32,8 +31,9 @@ class VersionSettingsView @JvmOverloads constructor(
 
     companion object {
         private const val URL_SUPPORT_AUTHOR = "https://donatello.to/truefedex"
+        private const val URL_DATAVISION = "https://github.com/ayumilove/DataVision"
         private const val URL_LICENSE =
-            "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
+            "https://github.com/The-Power-0/HomeVision/blob/main/LICENSE.md"
         private const val URL_PRIVACY_POLICY =
             "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/PRIVACY.md"
     }
@@ -59,13 +59,17 @@ class VersionSettingsView @JvmOverloads constructor(
         val engineVersion = "Engine: " + WebEngineFactory.getWebEngineVersionString()
         vb.tvWebViewVersion.text = engineVersion
 
-        vb.tvLink.text = Html.fromHtml("<p><u>https://github.com/truefedex/tv-bro</u></p>",
-            Html.FROM_HTML_MODE_LEGACY)
+        vb.tvLink.text = "https://github.com/truefedex/tv-bro"
         vb.tvLink.setOnClickListener {
-            loadUrl(vb.tvLink.text.toString())
+            loadUrl("https://github.com/truefedex/tv-bro")
         }
 
-        vb.tvSupportAuthor.text = context.getString(R.string.support_the_author)
+        vb.tvDataVisionLink.text = URL_DATAVISION
+        vb.tvDataVisionLink.setOnClickListener {
+            loadUrl(URL_DATAVISION)
+        }
+
+        vb.tvSupportAuthor.text = context.getString(R.string.homevision_support_upstream_author)
         vb.tvSupportAuthor.setOnClickListener {
             loadUrl(URL_SUPPORT_AUTHOR)
         }
@@ -75,13 +79,9 @@ class VersionSettingsView @JvmOverloads constructor(
             loadUrl(URL_LICENSE)
         }
 
-        vb.tvPrivacy.text = context.getString(R.string.privacy_policy)
+        vb.tvPrivacy.text = context.getString(R.string.homevision_upstream_privacy)
         vb.tvPrivacy.setOnClickListener {
             loadUrl(URL_PRIVACY_POLICY)
-        }
-
-        vb.tvUkraine.setOnClickListener {
-            loadUrl("https://tv-bro-3546c.web.app/msg001.html")
         }
 
         if (BuildConfig.BUILT_IN_AUTO_UPDATE) {

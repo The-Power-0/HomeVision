@@ -68,7 +68,7 @@
     <string name="clear">Clear</string>
     <string name="install">Install</string>
     <string name="turn_on_unknown_sources">Please turn on \"Unknown sources\" system setting</string>
-    <string name="turn_on_unknown_sources_for_app">Please allow DataVision to install apps from \"Unknown sources\" in system settings</string>
+    <string name="turn_on_unknown_sources_for_app">Please allow HomeVision to install apps from \"Unknown sources\" in system settings</string>
     <string name="storage_not_mounted">Storage not mounted</string>
     <string name="can_not_create_downloads">Can not create downloads dir</string>
     <string name="voice_search_not_found">Voice search not found</string>
@@ -139,7 +139,7 @@
         <item>Dark</item>
     </array>
     <string name="incognito_mode">Incognito mode</string>
-    <string name="incognito_mode_hint">Now you can browse privately, and other people who use this device won’t see your activity. DataVision won’t save your browsing history, cookies and site data, information entered in forms.\n\nHowever, downloads and bookmarks will be saved. Your activity might still be visible to websites you visit, your organization or internet service provider.</string>
+    <string name="incognito_mode_hint">Now you can browse privately, and other people who use this device won’t see your activity. HomeVision won’t save your browsing history, cookies and site data, information entered in forms.\n\nHowever, downloads and bookmarks will be saved. Your activity might still be visible to websites you visit, your organization or internet service provider.</string>
     <string name="don_t_show_again">Don\'t show again</string>
     <string name="why_icon_changed">Why icon changed?</string>
     <string name="clear_web_cache">Clear web cache</string>
@@ -162,7 +162,7 @@
     <string name="custom_home_page_url">Custom home page URL</string>
     <string name="home_page_links">Links on home page</string>
     <array name="home_page_modes">
-        <item>DataVision Home</item>
+        <item>HomeVision Home</item>
         <item>Search engine</item>
         <item>Custom</item>
         <item>Blank</item>
@@ -198,4 +198,9 @@
     <string name="kiosk_url_not_configured">Kiosk mode: dashboard URL is not configured yet, please set it in Settings</string>
     <string name="kiosk_mode_need_restart">Restart the app to apply kiosk mode changes</string>
     <string name="based_on_tv_bro_sources">DataVision is built on the open-source code of the TV Bro project</string>
+    <!-- Nontranslatable: the upstream names and provenance must stay accurate in every locale. -->
+    <string name="homevision_tvbro_attribution" translatable="false">Uses TV Bro source code, copyright 2019 Fedir Tsapana.</string>
+    <string name="homevision_datavision_attribution" translatable="false">Derived from DataVision by ayumilove.</string>
+    <string name="homevision_support_upstream_author" translatable="false">Support the original TV Bro author</string>
+    <string name="homevision_upstream_privacy" translatable="false">TV Bro privacy policy (upstream)</string>
 </resources>
