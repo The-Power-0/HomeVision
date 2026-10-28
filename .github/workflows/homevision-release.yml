@@ -45,7 +45,7 @@ jobs:
           java-version: |
             17
             21
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
       - name: Android SDK
         run: |
           yes | sdkmanager --licenses >/dev/null || true
