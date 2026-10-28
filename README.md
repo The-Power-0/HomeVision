@@ -99,5 +99,3 @@ This README documents the current implementation and release gates; it does not 
 
 - [DataVision](https://github.com/ayumilove/DataVision) — dashboard-kiosk customization and immediate source upstream.
 - [TV Bro](https://github.com/truefedex/tv-bro) — original Android TV browser code and license, copyright © 2019 Fedir Tsapana.
-
-The inherited [README_zh-CN.md](README_zh-CN.md) is the **historical DataVision Chinese-language README**, not an up-to-date translation of HomeVision's functionality or release process.

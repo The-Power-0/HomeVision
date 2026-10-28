@@ -6,11 +6,15 @@ plugins {
 android {
     namespace = "com.phlox.tvwebbrowser"
 
+    androidResources {
+        // Keep only supported app locales, including translations from dependencies.
+        localeFilters += listOf("en", "de", "fa", "it", "iw", "pl", "ru", "uk", "vi")
+    }
+
     defaultConfig {
         applicationId = "com.homevision.tv"
         versionCode = 10001
         versionName = "1.0.1"
-
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += mapOf(

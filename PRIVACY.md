@@ -1,45 +1,57 @@
-### 隐私政策 / Privacy policy ###
+# HomeVision privacy information (pre-release)
 
-**最后更新 / Last updated:** 2026 年 8 月 6 日
+**Document updated:** October 28, 2026
 
-本政策说明 **DataVision**（以下简称"本应用"）如何处理信息。本应用基于开源项目 [TV Bro](https://github.com/truefedex/tv-bro) 的源码定制开发，主要用于企业内部数据大屏展示。
+HomeVision is an independent Android TV / Fire TV dashboard-browser fork derived from
+[DataVision](https://github.com/ayumilove/DataVision) and
+[TV Bro](https://github.com/truefedex/tv-bro).
+This document replaces an inherited upstream privacy description. Before public
+redistribution, the app's code, dependencies, and actual network behavior must be
+reviewed to confirm all statements in the final privacy notice.
 
----
+## On-device information
 
-#### 本应用收集的信息 ####
+HomeVision supports locally stored browser and kiosk configuration, including the
+dashboard URL, reload preferences, browsing history used for page restoration,
+cookies, and web-storage/cache data. These can reveal sensitive information about
+the dashboards viewed. Anyone with access to an unlocked device or its debugging
+interface may be able to inspect local data.
 
-本应用**不收集任何个人数据**，**不会向开发者或任何第三方上传分析、使用统计或崩溃报告数据**。
+The project does not intentionally add a HomeVision-operated analytics or crash
+reporting service. **This is not a verified guarantee that the application or its
+third-party components make no other requests or collect no data.** Review all
+runtime dependencies and app network behavior before treating that as a published
+privacy assurance.
 
-以下信息仅保存在**设备本地**，不会对外传输：
+## Websites and network traffic
 
-- Kiosk 模式配置（大屏地址、自动刷新间隔等）
-- 最后访问的页面记录（用于重启后恢复展示内容）
-- 网页渲染引擎自身的本地缓存（Cookie、存储等，与普通浏览器一致）
+The app connects to the dashboard URLs and other sites that users configure or
+visit. Sites, authentication providers, loaded content, network providers, and
+intermediate infrastructure may process requests, cookies, IP addresses, and
+other usage information according to their own terms and privacy practices.
+The Home Assistant dashboard used during development is **not bundled** with
+HomeVision; its operator controls that server's data handling.
 
-#### 访问的网页 ####
+## Private browsing
 
-本应用以全屏方式展示管理员配置的内部数据大屏页面。请注意：
+The inherited private/incognito browsing mode uses a separate browsing context.
+Private browsing does not make network traffic anonymous and does not prevent
+visited websites or networks from observing activity. Do not rely on it as a
+security boundary without further technical validation.
 
-- 您所访问的**网站、网络和服务**可能根据其自身的隐私政策收集和处理数据。
-- 您的**设备、网络运营商、DNS 服务**等中间环节在加载页面时可能观察到网络活动。
-- 本应用默认展示的是企业内网数据页面，具体数据处理以该页面所属系统的政策为准。
+## Children and sensitive content
 
-#### 无痕模式 ####
+HomeVision is designed to display configured dashboards on television devices;
+it is not specifically intended for children. The person administering the
+screen should control access to the dashboards and any sensitive information
+displayed or stored.
 
-本应用保留了 TV Bro 的无痕（Incognito）模式：提供一个临时、隔离的本地站点数据空间，退出无痕模式时相关本地数据会被清除。**无痕模式不保证匿名性或隐私**，它不会向网站、网络运营方或其他可能观察流量的第三方隐藏您的活动。
+## Changes and questions
 
-#### 儿童 ####
+Updates to this document should be reflected in the repository before public
+releases. For issues with this fork, use the
+[HomeVision issue tracker](https://github.com/The-Power-0/HomeVision/issues).
+The upstream sources remain credited in [LICENSE.md](LICENSE.md) and
+[the attribution notice](docs/HOMEVISION_ATTRIBUTION.md).
 
-本应用不会有意收集儿童的个人信息。本应用面向企业展示场景，监护人应监督未成年人使用任何网页浏览类应用。
-
-#### 政策变更 ####
-
-我们可能不时更新本政策，更新后文首的"最后更新"日期会随之变化。变更后继续使用本应用即表示您接受修订后的政策。
-
-#### 联系方式 ####
-
-有关本定制版本的隐私问题，请联系应用分发方（内部 IT 支持）。原项目 TV Bro 的相关信息请访问：https://github.com/truefedex/tv-bro
-
----
-
-*本文档仅用于信息透明说明，不构成法律建议。*
+*This pre-release notice is provided for transparency and is not legal advice.*
