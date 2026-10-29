@@ -79,7 +79,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
                 checkedView = vb.root
             }
 
-            vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
+            vb.ivFavicon.setImageResource(R.drawable.ic_home_grey_900_24dp)
 
             val url = tabState.url
             if (url != Config.HOME_PAGE_URL && url != Config.HOME_URL_ALIAS) {
@@ -92,7 +92,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
                     favicon?.let {
                         vb.ivFavicon.setImageBitmap(it)
                     } ?: run {
-                        vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
+                        vb.ivFavicon.setImageResource(R.drawable.ic_home_grey_900_24dp)
                     }
                 }
             }

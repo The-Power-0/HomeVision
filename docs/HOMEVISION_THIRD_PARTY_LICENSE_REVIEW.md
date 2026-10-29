@@ -65,3 +65,24 @@ CI run as authorization to publish a public release.
    cursor/spatial navigation, network recovery, and error paths on Fire OS 7/8.
 5. Review release notes and source history for accurate upstream attribution.
 6. Keep signed-release workflow manually triggered until all checks are completed.
+
+
+## C14 follow-up: obsolete packaged artwork removal (pre-release)
+
+The successful 1.0.4 APK build contained five inherited `ic_launcher.png` density
+variants, a legacy `banner.png`, and `assets/pages/home/logo.png`. The C14
+source audit confirmed that launcher variants served only as tab favicon fallback
+and download notification artwork; the banner had no located live references,
+and the homepage image was referenced only by an unused `.logo` CSS block.
+
+The C14 cleanup replaces tab fallbacks with the existing lightweight Android
+vector `ic_home_grey_900_24dp`, download notification icons with the existing
+`ic_file_download_grey_900` vector, and the tab layout's preview icon with
+`ic_home_grey_900_24dp`. All seven obsolete PNGs and the unused `.logo` CSS
+rule are removed. The WebView-only CI source and APK inventory guards reject
+regressions. Search-provider favicons and the working homepage UI remain intact.
+
+The runtime-license audit still needs artifact-specific third-party NOTICE
+verification and a separate review of retained inherited UI artwork/resources.
+No statement here certifies licensing of all compiled app resources, and Fire TV
+regression checks remain outstanding before any public signed release.

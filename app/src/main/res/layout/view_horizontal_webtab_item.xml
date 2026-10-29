@@ -14,7 +14,7 @@
         android:id="@+id/ivFavicon"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        tools:src="@drawable/ic_launcher"
+        tools:src="@drawable/ic_home_grey_900_24dp"
         android:scaleType="fitCenter"
         android:layout_margin="5dp" />
     <TextView
