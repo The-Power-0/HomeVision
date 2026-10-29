@@ -126,7 +126,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var tabsModel: TabsModel
     private lateinit var settingsModel: SettingsModel
-    private lateinit var adblockModel: AdblockModel
     private lateinit var autoUpdateModel: AutoUpdateModel
     private lateinit var uiHandler: Handler
     private var isFullscreen: Boolean = false
@@ -184,7 +183,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             viewModel.prepareSwitchToIncognito()
         }
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
-        adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler()
@@ -199,7 +197,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.vTabs.listener = tabsListener
 
-        vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
         vb.ibPopupBlock.setOnClickListener { lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() } }
         vb.ibHome.setOnClickListener { navigate(settingsModel.homePage) }
         vb.ibBack.setOnClickListener { navigateBack() }
@@ -653,11 +650,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.ibBack.isEnabled = tab.webEngine.canGoBack() == true
         vb.ibForward.isEnabled = tab.webEngine.canGoForward() == true
 
-        val adblockEnabled = tab.adblock ?: config.adBlockEnabled
-        vb.ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
-        vb.tvBlockedAdCounter.visibility = if (adblockEnabled && tab.blockedAds != 0) View.VISIBLE else View.GONE
-        vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
-
         vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups != 0) View.VISIBLE else View.GONE
         vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
     }
@@ -775,17 +767,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             runBlocking { tabsModel.saveTab(this@apply) }
         }
         super.onPause()
-    }
-
-    private fun toggleAdBlockForTab() {
-        tabsModel.currentTab.value?.apply {
-            val currentState = adblock ?: config.adBlockEnabled
-            val newState = !currentState
-            adblock = newState
-            webEngine.onUpdateAdblockSetting(newState)
-            onWebViewUpdated(this)
-            refresh()
-        }
     }
 
     private suspend fun showPopupBlockOptions() {
@@ -1478,7 +1459,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (tabByTitleIndex(vb.vTabs.current) == tab) {
                 vb.vActionBar.setAddressBoxText(tab.url)
             }
-            tab.blockedAds = 0
             tab.blockedPopups = 0
         }
 
@@ -1516,21 +1496,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             vb.vActionBar.setAddressBoxTextColor(Color.RED)
         }
 
-        override fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean? {
-            if (config.isKioskHost(url.toString()) || config.isKioskHost(baseUri.toString())) {
-                //exempt the kiosk dashboard host from ad blocking so charts/APIs are never blocked
-                return false
-            }
-            return adblockModel.isAd(url, acceptHeader, baseUri)
-        }
-
-        override fun isAdBlockingEnabled(): Boolean {
-            tabsModel.currentTab.value?.adblock?.apply {
-                return this
-            }
-            return  config.adBlockEnabled
-        }
-
         override fun isDialogsBlockingEnabled(): Boolean {
             if (tab.url == Config.HOME_PAGE_URL) return false
             return shouldBlockNewWindow(dialog = true, userGesture = false)
@@ -1545,14 +1510,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 HostConfig.POPUP_BLOCK_NEW_AUTO_OPENED_TABS -> dialog || !userGesture
                 else -> true
             }
-        }
-
-        override fun onBlockedAd(uri: String) {
-            Log.i(TAG, "onBlockedAd: $uri")
-            if (!config.adBlockEnabled) return
-            tab.blockedAds++
-            vb.tvBlockedAdCounter.visibility = if (tab.blockedAds > 0) View.VISIBLE else View.GONE
-            vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
         }
 
         override fun onBlockedDialog(newTab: Boolean) {

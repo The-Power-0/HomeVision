@@ -22,7 +22,6 @@ import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomeContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentBlockingDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyHistoryDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyMediaSessionDelegate
@@ -156,7 +155,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
     val contentDelegate = MyContentDelegate(this)
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
-    val contentBlockingDelegate = MyContentBlockingDelegate(this)
     val mediaSessionDelegate = MyMediaSessionDelegate()
     val selectionActionDelegate = MySelectionActionDelegate()
     var appHomeContentScriptPortDelegate: AppHomeContentScriptPortDelegate? = null
@@ -176,9 +174,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
             .usePrivateMode(AppContext.provideConfig().incognitoMode)
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
-            //DataVision: disable tracking protection for the kiosk dashboard host
-            //so charts and API polling are never blocked
-            .useTrackingProtection(effectiveAdblockEnabled())
+            // Dedicated dashboard mode: do not apply content/tracking blocking.
+            .useTrackingProtection(false)
             .build()
         )
         session.navigationDelegate = navigationDelegate
@@ -187,7 +184,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         session.promptDelegate = promptDelegate
         session.permissionDelegate = permissionDelegate
         session.historyDelegate = historyDelegate
-        session.contentBlockingDelegate = contentBlockingDelegate
         session.mediaSessionDelegate = mediaSessionDelegate
         session.selectionActionDelegate = selectionActionDelegate
 
@@ -374,17 +370,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         session.goBack()
     }
 
-    /** Ad blocking state of this tab, with a kiosk dashboard host exemption. */
-    private fun effectiveAdblockEnabled(): Boolean {
-        val config = AppContext.provideConfig()
-        return (tab.adblock ?: config.adBlockEnabled) && !config.isKioskHost(tab.url)
-    }
-
     override fun reload() {
-        val adblockEnabled = effectiveAdblockEnabled()
-        if (session.settings.useTrackingProtection != adblockEnabled) {
-            session.settings.useTrackingProtection = adblockEnabled
-        }
         session.reload()
     }
 
@@ -409,10 +395,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
                 it.pause()
             }
         }
-    }
-
-    override fun onUpdateAdblockSetting(newState: Boolean) {
-        
     }
 
     override fun hideFullscreenView() {

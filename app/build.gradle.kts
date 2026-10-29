@@ -13,8 +13,8 @@ android {
 
     defaultConfig {
         applicationId = "com.homevision.tv"
-        versionCode = 10002
-        versionName = "1.0.2"
+        versionCode = 10003
+        versionName = "1.0.3"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += mapOf(
@@ -120,7 +120,6 @@ dependencies {
     implementation(libs.androidx.room.ktx)
 
     implementation(libs.segmented.button)
-    implementation(libs.ad.block)
     implementation(libs.pinned.section.listview)
 
     testImplementation(libs.junit)

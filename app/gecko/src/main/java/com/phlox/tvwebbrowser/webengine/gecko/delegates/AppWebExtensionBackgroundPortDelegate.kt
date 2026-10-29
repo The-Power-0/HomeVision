@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
-import android.net.Uri
 import android.util.Log
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import org.json.JSONObject
@@ -16,21 +15,10 @@ class AppWebExtensionBackgroundPortDelegate(val port: WebExtension.Port, val web
                     Log.i(TAG, "onBeforeRequest: " + msgJson.toString())
                     val data = msgJson.getJSONObject("details")
                     val requestId = data.getInt("requestId")
-                    val url = data.getString("url")
-                    val originUrl = data.getString("originUrl") ?: ""
-                    val type = data.getString("type")
-                    val callback = webEngine.callback ?: return
                     val msg = JSONObject()
                     msg.put("action", "onResolveRequest")
-                    val block = if (callback.isAdBlockingEnabled()) {
-                        callback.isAd(Uri.parse(url), type, Uri.parse(originUrl)) ?: false
-                    } else {
-                        false
-                    }
-                    if (block) {
-                        callback.onBlockedAd(url)
-                    }
-                    msg.put("data", JSONObject().put("requestId", requestId).put("block", block))
+                    // No content filtering: allow each request and still reply.
+                    msg.put("data", JSONObject().put("requestId", requestId).put("block", false))
                     port.postMessage(msg)
                 }
             }

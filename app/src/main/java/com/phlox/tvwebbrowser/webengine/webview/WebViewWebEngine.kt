@@ -145,10 +145,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         webView?.onPause()
     }
 
-    override fun onUpdateAdblockSetting(newState: Boolean) {
-        webView?.onUpdateAdblockSetting(newState)
-    }
-
     override fun hideFullscreenView() {
         webView?.hideCustomView()
     }
@@ -309,20 +305,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
             callback?.onPageCertificateError(url)
         }
 
-        override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {
-            return callback?.isAd(request.url, request.requestHeaders["Accept"], baseUri) ?: false
-        }
-
-        override fun isAdBlockingEnabled(): Boolean {
-            return callback?.isAdBlockingEnabled() ?: false
-        }
-
         override fun isDialogsBlockingEnabled(): Boolean {
             return callback?.isDialogsBlockingEnabled() ?: false
-        }
-
-        override fun onBlockedAd(url: Uri) {
-            callback?.onBlockedAd(url.toString())
         }
 
         override fun onBlockedDialog(newTab: Boolean) {

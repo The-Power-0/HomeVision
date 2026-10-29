@@ -115,10 +115,8 @@
   <string name="close_application">Zamknij aplikację</string>
   <string name="close_tab">Zamknij kartę</string>
   <string name="navigate_forward">Nawiguj do przodu</string>
-  <string name="toggle_ads_blocking">Przełącz blokadę reklam</string>
   <string name="never">nigdy</string>
   <string name="last_update">Ostatnia aktualizacja</string>
-  <string name="update_ad_blocker_list">Zaktualizuj listę blokowania reklam</string>
   <string name="toggle_keep_screen_on">Utrzymuj wyświetlacz włączony</string>
   <string name="navigate_with_joystick_axes">Nawigacja osiami joysticka</string>
   <string name="cursor_max_speed">Maksymalna prędkość wirtualnego kursora</string>

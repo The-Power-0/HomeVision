@@ -41,6 +41,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                        var wvState: ByteArray? = null,
                        @ColumnInfo(name = "wv_state_file")
                        var wvStateFileName: String? = null,
+                       // Legacy persisted column: keep to avoid a Room schema migration for installed users.
                        var adblock: Boolean? = null,
                        var scale: Float? = null) {
     companion object {
@@ -59,8 +60,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     val webEngine by lazy { WebEngineFactory.createWebEngine(this) }
     @Ignore
     var lastLoadingUrl: String? = null //this is last url appeared in WebViewClient.shouldOverrideUrlLoading callback
-    @Ignore
-    var blockedAds = 0
     @Ignore
     var blockedPopups = 0
     @Ignore

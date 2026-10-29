@@ -14,14 +14,12 @@ import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.Toast
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.main.AdblockModel
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
@@ -30,7 +28,6 @@ import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 
 class MainSettingsView @JvmOverloads constructor(
@@ -38,7 +35,6 @@ class MainSettingsView @JvmOverloads constructor(
 ) : ScrollView(context, attrs, defStyleAttr) {
     private var vb = ViewSettingsMainBinding.inflate(LayoutInflater.from(getContext()), this, true)
     var settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
-    var adblockModel = ActiveModelsRepository.get(AdblockModel::class, activity!!)
     var config = AppContext.provideConfig()
     private var kioskModeChanged = false
 
@@ -50,8 +46,6 @@ class MainSettingsView @JvmOverloads constructor(
         initHomePageAndSearchEngineConfigUI()
 
         initUAStringConfigUI(context)
-
-        initAdBlockConfigUI()
 
         initThemeSettingsUI()
 
@@ -260,47 +254,6 @@ class MainSettingsView @JvmOverloads constructor(
         })
     }
 
-    private fun initAdBlockConfigUI() {
-        vb.scAdblock.isChecked = config.adBlockEnabled
-        vb.etAdBlockerListUrl.setText(config.adBlockListURL.value)
-        vb.llAdblock.setOnClickListener {
-            vb.scAdblock.isChecked = !vb.scAdblock.isChecked
-            config.adBlockEnabled = vb.scAdblock.isChecked
-            vb.llAdBlockerDetails.visibility = if (vb.scAdblock.isChecked) VISIBLE else GONE
-        }
-        vb.llAdBlockerDetails.visibility = if (config.adBlockEnabled) VISIBLE else GONE
-
-        adblockModel.clientLoading.subscribe(activity as FragmentActivity) {
-            updateAdBlockInfo()
-        }
-
-        vb.btnAdBlockerUpdate.setOnClickListener {
-            if (adblockModel.clientLoading.value) return@setOnClickListener
-            saveAdBlockListUrl()
-            adblockModel.loadAdBlockList(true)
-            it.isEnabled = false
-        }
-
-        updateAdBlockInfo()
-    }
-
-    private fun saveAdBlockListUrl() {
-        val value = vb.etAdBlockerListUrl.text.toString().trim()
-        config.adBlockListURL.value = value.ifEmpty { Config.DEFAULT_ADBLOCK_LIST_URL }
-    }
-
-    private fun updateAdBlockInfo() {
-        val dateFormat = SimpleDateFormat("hh:mm dd MMMM yyyy", Locale.getDefault())
-        val lastUpdate = if (config.adBlockListLastUpdate == 0L)
-            context.getString(R.string.never) else
-            dateFormat.format(Date(config.adBlockListLastUpdate))
-        val infoText = "${context.getString(R.string.last_update)}: $lastUpdate"
-        vb.tvAdBlockerListInfo.text = infoText
-        val loadingAdBlockList = adblockModel.clientLoading.value
-        vb.btnAdBlockerUpdate.visibility = if (loadingAdBlockList) View.GONE else View.VISIBLE
-        vb.pbAdBlockerListLoading.visibility = if (loadingAdBlockList) View.VISIBLE else View.GONE
-    }
-
     private fun initUAStringConfigUI(context: Context) {
         if (config.userAgentString.value?.contains("TV Bro/1.0 ") == true) {//legacy ua string - now default one should be used
             config.userAgentString.value = null
@@ -415,7 +368,6 @@ class MainSettingsView @JvmOverloads constructor(
 
         val userAgent = vb.etUAString.text.toString().trim(' ')
         config.userAgentString.value = userAgent.ifEmpty { null }
-        saveAdBlockListUrl()
 
         val newKioskUrl = vb.etKioskUrl.text.toString().trim().ifEmpty { Config.DEFAULT_KIOSK_URL }
         val kioskUrlChanged = newKioskUrl != config.kioskUrl

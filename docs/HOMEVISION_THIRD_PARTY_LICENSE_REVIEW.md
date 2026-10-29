@@ -1,6 +1,6 @@
 # HomeVision third-party license review checklist
 
-This checklist is part of the pre-release gate. HomeVision preserves DataVision's dependency graph and does not ship GeckoView in the WebView-only flavor, but the fork still includes AndroidX, Kotlin, Kotlin Coroutines, Room, and other components. Review both **direct and transitive** dependencies and all bundled assets before publishing an APK.
+This checklist is part of the pre-release gate. HomeVision has modified DataVision's dependency graph and does not ship GeckoView in the WebView-only flavor, but the fork still includes AndroidX, Kotlin, Kotlin Coroutines, Room, and other components. Review both **direct and transitive** dependencies and all bundled assets before publishing an APK.
 
 Reviewed source: upstream `gradle/libs.versions.toml` (as inspected October 27, 2026):
 
@@ -9,7 +9,7 @@ Reviewed source: upstream `gradle/libs.versions.toml` (as inspected October 27, 
 | AndroidX AppCompat / WebKit / ConstraintLayout / RecyclerView / Lifecycle / Room | Verify actual published AAR license notices, typically Apache-2.0; preserve any NOTICE files where required |
 | Kotlin stdlib and Coroutines | Verify Kotlin/JetBrains notices and any transitive licenses |
 | `com.github.truefedex:segmented-button` | Inspect the exact GitHub tag and license; don't assume TV Bro's special license automatically covers separate libraries |
-| `com.github.truefedex:ad-block` | Inspect source license and any bundled filter list rights |
+| Brave-derived ad-block (removed from source in 1.0.3) | Verify resolved runtime dependencies and APK contain no ad-block AAR or native libraries; preserve historical database migrations for compatibility |
 | `de.halfbit:pinned-section-listview` | Verify license, copyright and any required acknowledgment |
 | Gradle plugins/KSP/Android Gradle Plugin | Distinguish build-time tools from bundled runtime material; still preserve license info when distributing build scripts |
 | GeckoView | Not intended to be packaged in genericGeckoExcluded; validate APK contents/build variant |

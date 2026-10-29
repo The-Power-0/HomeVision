@@ -100,10 +100,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onPageStarted(url: String?)
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
-        fun isAdBlockingEnabled(): Boolean
         fun isDialogsBlockingEnabled(): Boolean
-        fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean
-        fun onBlockedAd(url: Uri)
         fun onBlockedDialog(newTab: Boolean)
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
@@ -119,7 +116,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     init {
         with(settings) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                safeBrowsingEnabled = callback.isAdBlockingEnabled()
+                safeBrowsingEnabled = true // Independent of ad blocking: retain WebView Safe Browsing.
             }
             javaScriptEnabled = true
             useWideViewPort = true
@@ -386,18 +383,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                     }
                 }
 
-                if (!callback.isAdBlockingEnabled()) {
-                    return super.shouldInterceptRequest(view, request)
-                }
-
-                val ad = currentPageUrl?.let { callback.isAd(request, it)} ?: false
-                return if (ad) {
-                    Log.d(TAG, "Blocked ads request: ${request.url}")
-                    uiHandler.post { callback.onBlockedAd(request.url) }
-                    val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
-                    response.setStatusCodeAndReasonPhrase(403, "Blocked")
-                    response
-                } else super.shouldInterceptRequest(view, request)
+                return super.shouldInterceptRequest(view, request)
             }
 
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
@@ -636,12 +622,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 this.grant(resources.toTypedArray())
             }
             webPermissionsRequest = null
-        }
-    }
-
-    fun onUpdateAdblockSetting(adblockEnabled: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            settings.safeBrowsingEnabled = adblockEnabled
         }
     }
 

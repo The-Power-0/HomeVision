@@ -113,10 +113,8 @@
   <string name="close_application">Schließe App</string>
   <string name="close_tab">Schließe Tab</string>
   <string name="navigate_forward">Navigiere vorwärts</string>
-  <string name="toggle_ads_blocking">AdBlocker an / aus</string>
   <string name="never">Nie</string>
   <string name="last_update">Letztes Update</string>
-  <string name="update_ad_blocker_list">AdBlocker-Liste aktualisieren</string>
   <string name="need_restart">Benötigt App-Neustart</string>
   <string name="theme">Thema</string>
   <array name="themes">

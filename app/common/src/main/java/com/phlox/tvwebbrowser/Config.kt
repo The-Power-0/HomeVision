@@ -39,9 +39,6 @@ class Config(val prefs: SharedPreferences) {
         const val WEB_ENGINE_DEBUG_KEY = "web_engine_debug"
         //const val HOME_PAGE_VERSION_EXTRACTED = "home_page_version_extracted"
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
-        const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
-        const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
-        const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
         const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
         const val NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY = "notification_about_engine_change_shown"
         const val APP_VERSION_CODE_MARK_KEY = "app_version_code_mark"
@@ -56,8 +53,6 @@ class Config(val prefs: SharedPreferences) {
 
         const val ENGINE_GECKO_VIEW = "GeckoView"
         const val ENGINE_WEB_VIEW = "WebView"
-
-        const val DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "startpage", "custom")
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
@@ -226,20 +221,6 @@ class Config(val prefs: SharedPreferences) {
 
     var userAgentString = ObservableOptStringPreference(null, USER_AGENT_PREF_KEY)
 
-    var adBlockEnabled: Boolean = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
-        set(value) {
-            field = value
-            prefs.edit().putBoolean(ADBLOCK_ENABLED_PREF_KEY, field).apply()
-        }
-
-    var adBlockListURL = ObservableStringPreference(DEFAULT_ADBLOCK_LIST_URL, ADBLOCK_LIST_URL_KEY)
-
-    var adBlockListLastUpdate: Long
-        get() = prefs.getLong(ADBLOCK_LAST_UPDATE_LIST_KEY, 0)
-        set(value) {
-            prefs.edit().putLong(ADBLOCK_LAST_UPDATE_LIST_KEY, value).apply()
-        }
-
     var appWebExtensionVersion: Int
         get() = prefs.getInt(APP_WEB_EXTENSION_VERSION_KEY, 0)
         set(value) {
@@ -303,7 +284,7 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putBoolean(KIOSK_URL_APPLY_PENDING_KEY, value).apply()
         }
 
-    /** True if [url] belongs to the kiosk dashboard host (used to exempt ad blocking, etc.) */
+    /** True if [url] belongs to the configured dashboard host. */
     fun isKioskHost(url: String?): Boolean {
         if (url.isNullOrEmpty()) return false
         val kioskHost = Uri.parse(kioskUrl).host ?: return false

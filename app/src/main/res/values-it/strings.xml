@@ -115,10 +115,8 @@
   <string name="close_application">Chiudi app</string>
   <string name="close_tab">Chiudi scheda</string>
   <string name="navigate_forward">Avanti</string>
-  <string name="toggle_ads_blocking">Blocca pubblicità</string>
   <string name="never">Mai</string>
   <string name="last_update">Ultimo aggiornamento</string>
-  <string name="update_ad_blocker_list">Aggiorna lista blocco pubblicità</string>
   <string name="toggle_keep_screen_on">Mantieni schermo acceso</string>
   <string name="navigate_with_joystick_axes">Naviga con gli assi del joystick</string>
   <string name="cursor_max_speed">Velocità massima del cursore virtuale</string>
