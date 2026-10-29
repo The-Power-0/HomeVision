@@ -32,8 +32,8 @@ jobs:
           test -s docs/HOMEVISION_ATTRIBUTION.md
           test -s app/src/main/assets/homevision/TV_BRO_LICENSE.md
           grep -q 'truefedex/tv-bro' LICENSE.md
-          test -s app/src/main/res/drawable/homevision_launcher.xml
-          test -s app/src/main/res/drawable/homevision_banner.xml
+          test -s app/src/main/res/drawable-nodpi/homevision_launcher.png
+          test -s app/src/main/res/drawable-nodpi/homevision_banner.png
       - name: Source and license preflight
         run: python3 scripts/homevision_ci_guard.py source
       - name: Unit tests (WebView flavor)
