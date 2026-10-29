@@ -524,7 +524,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val currentTab = tabsModel.currentTab.value
         if (isKioskActive) {
             scheduleKioskAutoReload()
-            showKioskHintIfNeeded()
         } else if (kioskModeExited) {
             //DataVision: kiosk was exited in this session - go straight to settings
             //instead of the browser home screen (logo/quick links)
@@ -1102,14 +1101,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-    }
-
-    private var kioskHintShown = false
-
-    private fun showKioskHintIfNeeded() {
-        if (kioskHintShown) return
-        kioskHintShown = true
-        Toast.makeText(this, R.string.kiosk_mode_hint, Toast.LENGTH_LONG).show()
     }
 
     private fun scheduleKioskAutoReload() {

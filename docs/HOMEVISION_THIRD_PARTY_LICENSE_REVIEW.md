@@ -1,27 +1,67 @@
-# HomeVision third-party license review checklist
+# HomeVision third-party licensing and reproducible build safeguards
 
-This checklist is part of the pre-release gate. HomeVision has modified DataVision's dependency graph and does not ship GeckoView in the WebView-only flavor, but the fork still includes AndroidX, Kotlin, Kotlin Coroutines, Room, and other components. Review both **direct and transitive** dependencies and all bundled assets before publishing an APK.
+Updated for HomeVision 1.0.4. **This is a partial source-level license audit, not a
+legal compliance certification or a complete transitive-dependency SBOM.**
+HomeVision is based on DataVision and TV Bro. Preserve `LICENSE.md`, the original
+TV Bro license inside the APK, and both upstream project attributions.
 
-Reviewed source: upstream `gradle/libs.versions.toml` (as inspected October 27, 2026):
+## Confirmed direct dependencies (WebView-only flavor)
 
-| Declared dependency | Audit action |
-|---|---|
-| AndroidX AppCompat / WebKit / ConstraintLayout / RecyclerView / Lifecycle / Room | Verify actual published AAR license notices, typically Apache-2.0; preserve any NOTICE files where required |
-| Kotlin stdlib and Coroutines | Verify Kotlin/JetBrains notices and any transitive licenses |
-| `com.github.truefedex:segmented-button` | Inspect the exact GitHub tag and license; don't assume TV Bro's special license automatically covers separate libraries |
-| Brave-derived ad-block (removed from source in 1.0.3) | Verify resolved runtime dependencies and APK contain no ad-block AAR or native libraries; preserve historical database migrations for compatibility |
-| `de.halfbit:pinned-section-listview` | Verify license, copyright and any required acknowledgment |
-| Gradle plugins/KSP/Android Gradle Plugin | Distinguish build-time tools from bundled runtime material; still preserve license info when distributing build scripts |
-| GeckoView | Not intended to be packaged in genericGeckoExcluded; validate APK contents/build variant |
-| Original DataVision icons, images and webpages | HomeVision replaces launcher icon/banner; audit other bundled assets for attribution/trademark obligations |
+| Component | Coordinates / provenance | Identified license | Included notice |
+|---|---|---|---|
+| TV Bro source / DataVision derivative | `https://github.com/truefedex/tv-bro` and `https://github.com/ayumilove/DataVision` | Original inherited `LICENSE.md` (special source terms; do not relabel it) | `assets/homevision/TV_BRO_LICENSE.md`, `assets/homevision/ATTRIBUTION.md` |
+| Segmented Button | `com.github.truefedex:segmented-button:v1.0.0` | BSD-2-Clause, copyright 2018 Fedir Tsapana; verified against the `v1.0.0` GitHub tag | `assets/homevision/SEGMENTED_BUTTON_LICENSE.txt` (complete source license) |
+| Pinned Section ListView | `de.halfbit:pinned-section-listview:1.0.0` | Apache-2.0, copyright 2013-2016 Sergej Shafarenka; project source and Maven metadata | `assets/homevision/PINNED_SECTION_LISTVIEW_NOTICE.txt`, `assets/homevision/APACHE_2_0_LICENSE.txt` |
 
-**Required manual verification before public release:**
+Upstream evidence: [segmented-button v1.0.0 license](https://github.com/truefedex/segmented-button/blob/v1.0.0/LICENSE),
+[pinned-section-listview source project](https://github.com/beworker/pinned-section-listview),
+[Maven repository metadata](https://mvnrepository.com/artifact/de.halfbit/pinned-section-listview/1.0.0),
+[Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
-1. Open the app's About section on an actual Fire TV and verify visible "Based on TV Bro sources" and a working link to https://github.com/truefedex/tv-bro; don't remove inherited attribution.
-2. Keep `LICENSE.md` from upstream unchanged and bundle it as `assets/homevision/TV_BRO_LICENSE.md` inside the APK.
-3. Keep HomeVision's separate `HOMEVISION_ATTRIBUTION.md` crediting both TV Bro and DataVision.
-4. Run Gradle dependency reporting for the WebView flavor and review upstream dependency repositories and their release licenses. Do not publish until the licenses of directly included libraries and bundled content are verified.
-5. Inspect the signed APK's asset and native library inventory, not just its source. Ensure GeckoView native libraries and original launcher imagery aren't being used.
-6. The application ID and display name must be different from TV Bro's; logo and banner must be new.
+## Dependency families still requiring a full transitive review
 
-This is a legal audit checklist, not legal advice or a guarantee that all third-party licenses have been identified. Update it each time dependencies change.
+- AndroidX (AppCompat, WebKit, ConstraintLayout, RecyclerView, Lifecycle, Room),
+  Kotlin standard library, Kotlin Coroutines, and their runtime dependencies.
+- Confirm exact resolved versions, all published license metadata, copyright/NOTICE
+  requirements, and whether those notices must be reproduced in binary distribution.
+- Build-only Gradle/KSP/Android Gradle Plugin packages must be tracked separately
+  from libraries actually bundled into the APK.
+- Audit any inherited bundled HTML, fonts, images, scripts, or upstream icons
+  separately; replacing launcher/banner does not prove all assets are cleared.
+- Before public distribution, produce a full resolved-component inventory with
+  pinned versions and corresponding license texts; seek legal review as needed.
+
+## Safeguards applied by CI
+
+The script `scripts/homevision_ci_guard.py` checks the WebView flavor at source,
+resolved-dependency-report and APK levels. Both CI workflows run it; the signed
+release workflow additionally checks its release APK before the publish step.
+
+- Confirms `com.homevision.tv`, semantic version metadata, the new PNG launcher and
+  widescreen banner, removal of the old vectors, and removal of the noisy kiosk
+  startup toast while preserving existing kiosk/nav behavior.
+- Confirms historical Room migrations and tab column are retained so existing
+  installations can be upgraded without a destructive data migration.
+- Rejects Brave ad-block / GeckoView dependencies in the resolved WebView-only
+  runtime graph and rejects any packaged native `.so` libraries in that flavor.
+- Verifies that TV Bro attribution and the named third-party license/notice files
+  are present and nonempty inside the built APK.
+- Retains a build artifact containing the dependency report to facilitate ongoing
+  manual licensing review.
+
+**Limits:** These checks do not prove the absence of all unused classes, analyze
+transitive licenses, ensure that every required notice was discovered, or replace
+real-device regression testing. They also do not validate the optional Gecko flavor,
+which is not intended for the user's Fire TV deployment. Do not treat a successful
+CI run as authorization to publish a public release.
+
+## Pre-public-release checklist
+
+1. Verify About UI on Fire TV credits TV Bro and DataVision with working links.
+2. Review *all* direct and transitive runtime licenses and NOTICE obligations.
+3. Inspect the final signed APK, verify its signing certificate, package name,
+   compiled version, app icon/banner, APK/native inventory, and bundled notices.
+4. Validate in-place upgrades, startup, dashboard, Back/long-press gestures,
+   cursor/spatial navigation, network recovery, and error paths on Fire OS 7/8.
+5. Review release notes and source history for accurate upstream attribution.
+6. Keep signed-release workflow manually triggered until all checks are completed.

@@ -192,7 +192,6 @@
     <string name="kiosk_mode_url">Dashboard page URL</string>
     <string name="kiosk_auto_reload_minutes">Auto reload interval (minutes, 0 - off)</string>
     <string name="kiosk_mode_exited">Kiosk mode disabled. Restart applied, re-enable it in Settings</string>
-    <string name="kiosk_mode_hint">Kiosk mode: long press MENU or BACK key to exit and change the dashboard URL in Settings</string>
     <string name="kiosk_url_not_configured">Kiosk mode: dashboard URL is not configured yet, please set it in Settings</string>
     <string name="kiosk_mode_need_restart">Restart the app to apply kiosk mode changes</string>
     <string name="based_on_tv_bro_sources">DataVision is built on the open-source code of the TV Bro project</string>

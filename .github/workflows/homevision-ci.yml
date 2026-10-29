@@ -34,6 +34,8 @@ jobs:
           grep -q 'truefedex/tv-bro' LICENSE.md
           test -s app/src/main/res/drawable/homevision_launcher.xml
           test -s app/src/main/res/drawable/homevision_banner.xml
+      - name: Source and license preflight
+        run: python3 scripts/homevision_ci_guard.py source
       - name: Unit tests (WebView flavor)
         run: ./gradlew :app:testGenericGeckoExcludedDebugUnitTest --stacktrace
       - name: Build WebView debug APK
@@ -48,8 +50,19 @@ jobs:
           assert apk.stat().st_size < 25_000_000, f'Unexpectedly large APK: {apk.stat().st_size}'
           print('Validated', apk, apk.stat().st_size)
           PY
+      - name: Audit resolved WebView runtime and APK license inventory
+        run: |
+          ./gradlew :app:dependencies --configuration genericGeckoExcludedDebugRuntimeClasspath --console=plain > homevision-runtime-dependencies.txt
+          python3 scripts/homevision_ci_guard.py dependency homevision-runtime-dependencies.txt
+          python3 scripts/homevision_ci_guard.py apk app/build/outputs/apk/genericGeckoExcluded/debug/app-generic-geckoExcluded-debug.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/genericGeckoExcluded/debug/app-generic-geckoExcluded-debug.apk | grep -F "name='com.homevision.tv'"
       - uses: actions/upload-artifact@v4
         with:
           name: HomeVision-debug
           path: app/build/outputs/apk/genericGeckoExcluded/debug/*.apk
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HomeVision-dependency-report
+          path: homevision-runtime-dependencies.txt
           retention-days: 7

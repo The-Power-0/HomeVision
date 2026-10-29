@@ -50,6 +50,8 @@ jobs:
         run: |
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Source and license preflight
+        run: python3 scripts/homevision_ci_guard.py source
       - name: Decode signing keystore
         env:
           SIGNING_B64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -83,6 +85,11 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs HomeVision.apk | tee homevision-signature.txt
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging HomeVision.apk | grep -E '^package:|^application-label:' | tee homevision-package.txt
           grep -q "name='com.homevision.tv'" homevision-package.txt
+      - name: Audit signed WebView release dependency and APK notices
+        run: |
+          ./gradlew :app:dependencies --configuration genericGeckoExcludedReleaseRuntimeClasspath --console=plain > homevision-runtime-dependencies.txt
+          python3 scripts/homevision_ci_guard.py dependency homevision-runtime-dependencies.txt
+          python3 scripts/homevision_ci_guard.py apk HomeVision.apk
       - name: Create integrity file
         run: sha256sum HomeVision.apk > HomeVision.apk.sha256
       - name: Publish signed release

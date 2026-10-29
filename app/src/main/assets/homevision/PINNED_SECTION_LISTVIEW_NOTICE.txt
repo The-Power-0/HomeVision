@@ -1,0 +1,13 @@
+Pinned Section ListView (de.halfbit:pinned-section-listview:1.0.0)
+Copyright (C) 2013-2016 Sergej Shafarenka, halfbit.de
+
+Licensed under the Apache License, Version 2.0.
+You may obtain a copy of the License at:
+  https://www.apache.org/licenses/LICENSE-2.0
+
+See APACHE_2_0_LICENSE.txt in this directory for the complete license terms.
+
+Source project: https://github.com/beworker/pinned-section-listview
+Maven coordinates: de.halfbit:pinned-section-listview:1.0.0
+
+This notice covers the named library, not other unrelated dependencies.
