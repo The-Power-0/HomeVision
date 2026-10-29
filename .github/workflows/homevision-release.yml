@@ -52,6 +52,8 @@ jobs:
           sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Source and license preflight
         run: python3 scripts/homevision_ci_guard.py source
+      - name: Verify inherited resource provenance
+        run: python3 scripts/homevision_asset_provenance.py source
       - name: Decode signing keystore
         env:
           SIGNING_B64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -90,6 +92,7 @@ jobs:
           ./gradlew :app:dependencies --configuration genericGeckoExcludedReleaseRuntimeClasspath --console=plain > homevision-runtime-dependencies.txt
           python3 scripts/homevision_ci_guard.py dependency homevision-runtime-dependencies.txt
           python3 scripts/homevision_ci_guard.py apk HomeVision.apk
+          python3 scripts/homevision_asset_provenance.py apk HomeVision.apk
       - name: Create integrity file
         run: sha256sum HomeVision.apk > HomeVision.apk.sha256
       - name: Publish signed release

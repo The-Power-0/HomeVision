@@ -36,6 +36,8 @@ jobs:
           test -s app/src/main/res/drawable-nodpi/homevision_banner.png
       - name: Source and license preflight
         run: python3 scripts/homevision_ci_guard.py source
+      - name: Verify inherited resource provenance
+        run: python3 scripts/homevision_asset_provenance.py source
       - name: Unit tests (WebView flavor)
         run: ./gradlew :app:testGenericGeckoExcludedDebugUnitTest --stacktrace
       - name: Build WebView debug APK
@@ -55,6 +57,7 @@ jobs:
           ./gradlew :app:dependencies --configuration genericGeckoExcludedDebugRuntimeClasspath --console=plain > homevision-runtime-dependencies.txt
           python3 scripts/homevision_ci_guard.py dependency homevision-runtime-dependencies.txt
           python3 scripts/homevision_ci_guard.py apk app/build/outputs/apk/genericGeckoExcluded/debug/app-generic-geckoExcluded-debug.apk
+          python3 scripts/homevision_asset_provenance.py apk app/build/outputs/apk/genericGeckoExcluded/debug/app-generic-geckoExcluded-debug.apk
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/genericGeckoExcluded/debug/app-generic-geckoExcluded-debug.apk | grep -F "name='com.homevision.tv'"
       - uses: actions/upload-artifact@v4
         with:

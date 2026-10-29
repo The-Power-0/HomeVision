@@ -86,3 +86,19 @@ The runtime-license audit still needs artifact-specific third-party NOTICE
 verification and a separate review of retained inherited UI artwork/resources.
 No statement here certifies licensing of all compiled app resources, and Fire TV
 regression checks remain outstanding before any public signed release.
+
+## C14.6 inherited asset provenance audit
+
+A separate source and compiled-APK audit now tracks 23 inherited assets
+(7 search logos, 5 SVGs, 10 tab nine-patches, and 1 JS helper). Exact Git
+blob identity to DataVision is recorded at
+`docs/HOMEVISION_INHERITED_ASSETS.csv` and discussed in
+`docs/HOMEVISION_ASSET_PROVENANCE.md`. A bundled in-APK provenance
+notice is at `assets/homevision/BUNDLED_ASSET_PROVENANCE.md`. The CI source
+guard flags changed assets for manual review, while APK validation verifies
+packaged web asset hashes and the notice. Android nine-patches are checked
+at source because AAPT2 may transform them during packaging.
+
+**This is a provenance record, not redistribution clearance** for individual
+company logos or inherited illustration art. The asset-level permissions
+and artifact-specific NOTICE obligations remain open before a public release.
